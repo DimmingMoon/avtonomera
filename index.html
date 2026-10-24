@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Автономера: крутка</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#12151b;--panel:#1c212b;--line:#2c3340;--tx:#eef0f3;--mut:#8b94a5;--acc:#ff9d2e;--plate:#f6f6f1;--ink:#111;
+--c0:#9aa3b2;--c1:#4ade80;--c2:#38a0ff;--c3:#b36bff;--c4:#ffb020;--c5:#ff3d6e;color-scheme:dark;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eceef2;--panel:#fff;--line:#d3d8e0;--tx:#161a22;--mut:#5d6677;color-scheme:light}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none;-webkit-user-select:none;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--acc) 10%,transparent),transparent 60%)}
+header{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.bal{flex:1;font-family:Oswald,sans-serif;font-size:26px;font-weight:700;letter-spacing:.5px}.bal small{display:block;font:12px system-ui;color:var(--mut)}
+button,select,input{font:inherit;color:inherit}
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.btn:hover{border-color:var(--acc)}.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn.pri{background:var(--acc);color:#1a1100;border-color:var(--acc);font-weight:600}
+main{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:12px;text-align:center;cursor:pointer;min-height:0}
+.ctag{position:absolute;left:14px;top:10px;color:var(--mut);font-size:14px;text-align:left;pointer-events:none}.ctag b{color:var(--tx);font-family:Oswald,sans-serif;font-size:18px}
+.plate{display:inline-flex;align-items:stretch;background:var(--plate);color:var(--ink);border:4px solid var(--ink);border-radius:10px;font-family:Oswald,Impact,sans-serif;font-weight:700;overflow:hidden;box-shadow:0 0 0 3px var(--rc,transparent),0 10px 30px #0008}
+.plate .n{padding:2px 14px;font-size:var(--fs,54px);letter-spacing:3px;line-height:1.15;white-space:nowrap}
+.plate .r{border-left:3px solid var(--ink);padding:2px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:calc(var(--fs,54px)*1.1)}
+.plate .r b{font-size:calc(var(--fs,54px)*.62);line-height:1}.plate .r i{font-style:normal;font-size:calc(var(--fs,54px)*.2);display:flex;align-items:center;gap:3px;letter-spacing:1px}
+.plate .r i:after{content:"";width:1.5em;height:.9em;background:linear-gradient(#fff 33%,#1d4ed8 33% 66%,#d52b1e 66%);border:1px solid #0006}
+.res{min-height:150px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.res.pop .plate{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+.tag{font-weight:700}.price{font-family:Oswald,sans-serif;font-size:20px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;border-top:1px solid var(--line);cursor:default}
+.chip{flex:0 0 auto;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;text-align:left}
+.chip.on{border-color:var(--acc)}.chip b{display:block}.chip span{color:var(--mut);font-size:13px}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:20;padding:12px;cursor:default}
+.modal.show{display:flex}.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:min(720px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;user-select:text}
+.box h2{margin:0;font-size:18px;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.body{padding:14px;overflow:auto;display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+input[type=range]{padding:0}
+.items{display:grid;gap:8px}.it{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-left:5px solid var(--rc);border-radius:8px;padding:8px}
+.it .plate{--fs:26px;border-width:3px}.it.safe{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+.ov{position:fixed;inset:0;z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:radial-gradient(circle,color-mix(in srgb,var(--rc) 55%,#000) 0,#000 75%);cursor:pointer}
+.ov.show{display:flex;animation:fade .3s}@keyframes fade{from{opacity:0}}
+.ov .plate{--fs:min(15vw,90px);animation:zoom .9s cubic-bezier(.2,1.4,.3,1),glow 1.2s ease-in-out infinite alternate}
+.ov h1{margin:0;font-family:Oswald,sans-serif;font-size:min(10vw,56px);color:var(--rc);text-shadow:0 0 24px var(--rc);animation:zoom .6s}
+.ov.div{animation:fade .3s,shake .5s 3}.ov.div h1{background:linear-gradient(90deg,#ff3d6e,#ffb020,#4ade80,#38a0ff,#b36bff,#ff3d6e);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:zoom .6s,rb 2s linear infinite}
+@keyframes zoom{from{transform:scale(.2) rotate(-8deg);opacity:0}}@keyframes glow{to{box-shadow:0 0 0 4px var(--rc),0 0 70px var(--rc)}}
+@keyframes shake{25%{transform:translate(6px,-4px)}75%{transform:translate(-6px,4px)}}@keyframes rb{to{background-position:200%}}
+.rays{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--rc) 35%,transparent) 0 6deg,transparent 6deg 18deg);animation:spin 12s linear infinite;pointer-events:none;mask:radial-gradient(circle,#000 0,transparent 55%);-webkit-mask:radial-gradient(circle,#000 0,transparent 55%)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--acc);padding:8px 14px;border-radius:8px;z-index:40;display:none}
+.why{list-style:none;margin:0;padding:0;display:grid;gap:4px;max-width:46ch;font-size:14px;text-align:left}
+.why li{color:var(--mut);padding-left:16px;position:relative}.why li:before{content:"•";position:absolute;left:3px;color:var(--rc,var(--acc))}
+.ov .why li{color:#fff;opacity:0;animation:fade .5s forwards}.ov .why{text-align:left}
+.bar{width:min(420px,80vw);height:6px;background:#fff3;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--rc)}
+.mut{color:var(--mut);font-size:13px;min-height:1em}.ov .mut{color:#fffa}
+.sel{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap;cursor:default}.sel select{flex:1 1 200px;min-width:0}
+.it .why{width:100%;font-size:12px}
+.sel{position:relative}.rs{position:relative;flex:1 1 200px}.rs input{width:100%}
+.rlist{position:absolute;bottom:100%;left:0;right:0;max-height:42vh;overflow:auto;background:var(--panel);border:1px solid var(--acc);border-radius:8px;display:none;z-index:15;margin-bottom:4px}
+.ro{padding:9px 10px;cursor:pointer;border-bottom:1px solid var(--line);text-align:left}.ro span{color:var(--mut);font-size:12px}.ro.on,.ro:hover{background:color-mix(in srgb,var(--acc) 15%,transparent)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body>
+<div id="app">
+<header><div class="bal"><small>Баланс</small><span id="bal"></span></div><button class="btn" id="bonus">Подработка +5к</button><button class="btn pri" id="bWh">Склад</button><button class="btn" id="bSet">Настройки</button></header>
+<main id="stage"><div class="ctag">Крутка: <b id="cost"></b><span id="qn"></span></div><div class="res" id="res"></div></main>
+<div class="sel"><div class="rs"><input id="rq" placeholder="Поиск региона или кода…" autocomplete="off" aria-label="Регион"><div class="rlist" id="rl"></div></div><select id="selC" aria-label="Код региона"></select></div>
+</div>
+
+<div class="modal" id="mWh"><div class="box"><h2>Склад <button class="btn" data-close>Закрыть</button></h2><div class="body">
+<div class="row"><select id="tab"><option value="all">Все</option><option value="out">Не в сейфе</option><option value="safe">Сейф</option></select>
+<select id="sort"><option value="new">Сначала новые</option><option value="old">Сначала старые</option><option value="pd">Дороже</option><option value="pa">Дешевле</option><option value="rd">По редкости</option></select>
+<select id="fr"><option value="-1">Любая редкость</option></select></div>
+<div class="row"><b id="capInfo"></b><button class="btn pri" id="upg"></button></div>
+<div class="row"><button class="btn" id="sellAll">Продать всё не в сейфе</button><span id="whInfo" style="color:var(--mut)"></span></div>
+<div class="items" id="items"></div></div></div></div>
+
+<div class="modal" id="mSet"><div class="box"><h2>Настройки <button class="btn" data-close>Закрыть</button></h2><div class="body">
+<label class="row"><input type="checkbox" id="snd"> Звук</label>
+<label class="row">Громкость <input type="range" id="vol" min="0" max="1" step=".05"></label>
+<div class="row"><input id="code" placeholder="Код автора"><button class="btn pri" id="codeOk">Применить</button></div>
+<button class="btn" id="reset">Сбросить прогресс</button></div></div></div>
+
+<div class="modal" id="mAd"><div class="box"><h2>Меню автора <button class="btn" data-close>Закрыть</button></h2><div class="body">
+<div class="row"><input id="adM" type="number" placeholder="Деньги" style="width:160px"><button class="btn" id="adMb">Выдать деньги</button></div>
+<b>Выдать номер</b>
+<div class="row"><input id="adP" placeholder="А777АА" style="width:120px" maxlength="6"><input id="adR" list="rgl" placeholder="Регион (любой, можно свой)" style="width:190px"><input id="adC" placeholder="Код" maxlength="4" style="width:70px"><input id="adM2" type="number" step="any" placeholder="×цена своего региона" style="width:150px"><input id="adPr" type="number" placeholder="Цена (авто)" style="width:130px"><button class="btn pri" id="adG">В очередь</button></div><datalist id="rgl"></datalist><div class="mut">Редкость считается автоматически. Номер выпадет при следующем нажатии по экрану, крутка бесплатная.</div>
+<b>Фантом (несуществующий регион)</b>
+<div class="row"><input id="phP" placeholder="А777АА (пусто — случайный)" maxlength="6" style="width:190px"><input id="phC" list="phl" placeholder="Код (пусто — случайный)" maxlength="4" style="width:190px"><button class="btn pri" id="phG">Фантом в очередь</button></div><datalist id="phl"></datalist>
+<label class="row">Шанс фантома: доля от легендарного <input id="phK" type="number" min="0" step="any" style="width:90px"> <small id="phPc" class="mut"></small></label>
+<b>Шансы выпадения (вес)</b><div id="adCh" class="items"></div><button class="btn" id="adRs">Шансы по умолчанию</button></div></div></div>
+
+<div class="ov" id="ov"><div class="rays"></div><h1 id="ovT"></h1><div id="ovP"></div><div class="price" id="ovC"></div><ul class="why" id="ovW"></ul><div class="bar"><i id="bar"></i></div><div class="mut" id="ovH"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const RN=['Обычный','Необычный','Редкий','Эпический','Легендарный','Божественный'];
+const RC=['--c0','--c1','--c2','--c3','--c4','--c5'];
+// шансы по умолчанию (вес; сумма 10000 = 100%)
+const DEFW=[9350,590,52,4.5,.3,.02];
+// порог "силы номера" P для редкости
+const TH=[2.5,10,60,400,3000];
+// коды|регион|множитель цены (престиж региона на рынке)
+const RG=`77,97,99,177,197,199,777,797,799|Москва|5
+78,98,178|Санкт-Петербург|3
+50,90,150,190,750,790|Московская область|2
+23,93,123|Краснодарский край|2.5
+92|Севастополь|1.6
+82|Республика Крым|1.5
+16,116,716|Татарстан|1.8
+02,102,702|Башкортостан|1.3
+66,96,196|Свердловская область|1.5
+74,174,774|Челябинская область|1.2
+54,154|Новосибирская область|1.3
+24,84,88,124|Красноярский край|1.3
+52,152|Нижегородская область|1.3
+63,163,763|Самарская область|1.3
+61,161,761|Ростовская область|1.4
+59,81,159|Пермский край|1.1
+34,134|Волгоградская область|1.1
+36,136|Воронежская область|1.1
+64,164|Саратовская область|1.0
+86,186|ХМАО-Югра|1.4
+89|Ямало-Ненецкий АО|1.4
+72|Тюменская область|1.3
+95|Чечня|1.8
+05|Дагестан|1.2
+26,126|Ставропольский край|1.1
+25,125|Приморский край|1.3
+27|Хабаровский край|1.1
+38,85,138|Иркутская область|1.0
+42,142|Кемеровская область|1.0
+55,155|Омская область|1.0
+56|Оренбургская область|0.9
+73,173|Ульяновская область|0.9
+76|Ярославская область|1.0
+71|Тульская область|1.0
+39,91|Калининградская область|1.2
+47|Ленинградская область|1.4
+01|Адыгея|0.8
+03,103|Бурятия|0.8
+04|Республика Алтай|0.8
+06|Ингушетия|0.9
+07|Кабардино-Балкария|0.9
+08|Калмыкия|0.7
+09|Карачаево-Черкесия|0.8
+10|Карелия|0.8
+11|Коми|0.8
+12|Марий Эл|0.7
+13,113|Мордовия|0.8
+14|Якутия|1.0
+15|Северная Осетия|0.9
+17|Тыва|0.7
+18|Удмуртия|0.9
+19|Хакасия|0.8
+21,121|Чувашия|0.8
+22|Алтайский край|0.9
+28|Амурская область|0.8
+29|Архангельская область|0.8
+30|Астраханская область|0.9
+31|Белгородская область|1.0
+32|Брянская область|0.8
+33|Владимирская область|0.9
+35|Вологодская область|0.8
+37|Ивановская область|0.7
+40|Калужская область|0.9
+41|Камчатский край|0.9
+43|Кировская область|0.8
+44|Костромская область|0.7
+45|Курганская область|0.7
+46|Курская область|0.8
+48|Липецкая область|0.9
+49|Магаданская область|0.8
+51|Мурманская область|0.9
+53|Новгородская область|0.8
+57|Орловская область|0.7
+58|Пензенская область|0.8
+60|Псковская область|0.7
+62|Рязанская область|0.9
+65|Сахалинская область|1.0
+67|Смоленская область|0.7
+68|Тамбовская область|0.7
+69|Тверская область|0.8
+70|Томская область|0.9
+75,80|Забайкальский край|0.7
+79|Еврейская АО|0.6
+83|Ненецкий АО|0.8
+87|Чукотский АО|0.7
+94|Байконур|0.7`.split('\n').map(l=>{const[c,n,m]=l.split('|');return{c:c.split(','),n,m:+m}});
+const PH=['00','20','88','XX','ZZ','AA','000','999'],SAFE=10,WH0=1000,UPS=500,UPC=1e6,U=1000,BASE=3000,L='АВЕКМНОРСТУХ',CODE='1337DM',KEY='plategame2';
+const GOV=['ЕКХ','ККХ','ХКХ','МКХ','АМР','ТМР','ОМР','СКХ'];
+const WORDS=['КОТ','ХАН','САМ','ТОР','МАК','ВАН','РОК','НОС','ТОК','КАМ'];
+let S;
+function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+ S=Object.assign({money:100000,items:[],w:DEFW.slice(),snd:true,vol:.5,reg:0,cd:'',seq:0,q:[],up:0,v:0,pk:.5},S||{});
+ if(S.v<4){S.w=DEFW.slice();S.v=4}}
+const cap=()=>WH0+UPS*S.up,nSafe=()=>S.items.filter(i=>i.safe).length,nOut=()=>S.items.length-nSafe(),upCost=()=>UPC*Math.pow(10,S.up);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function fmt(n){n=Math.round(n);if(n>=1e9)return +(n/1e9).toFixed(2)+' млрд';if(n>=1e6)return +(n/1e6).toFixed(2)+' млн';return n.toLocaleString('ru-RU')}
+const pick=a=>a[Math.floor(Math.random()*a.length)],ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const rl=()=>pick(L.split(''));
+// ---------- анализ номера ----------
+function power(p){const d=p.slice(1,4),ls=p[0]+p[4]+p[5],why=[];let dm=1,lm=1;const a=+d[0],b=+d[1],c=+d[2];
+ if(d=='001'){dm=800;why.push('«001» — самый первый номер серии, главный статусный номер')}
+ else if(d=='007'){dm=500;why.push('«007» — номер агента Джеймса Бонда')}
+ else if(/^00[2-9]$/.test(d)){dm=300;why.push('«00X» — номера из начала серии, их разбирают первыми')}
+ else if(d=='777'){dm=150;why.push('«777» — счастливые семёрки, самый ходовой VIP-номер')}
+ else if(d=='000'){dm=600;why.push('«000» — тройной ноль, один из самых статусных и дорогих номеров')}
+ else if(d=='666'){dm=30;why.push('«666» — три одинаковые цифры, число зверя; покупают реже других «трёшек»')}
+ else if(a==b&&b==c){dm=40;why.push('Три одинаковые цифры ('+d+')')}
+ else if(/^[1-9]00$/.test(d)){dm=25;why.push('Круглое число: ровные сотни ('+d+')')}
+ else if(b==a+1&&c==b+1){dm=15;why.push('Цифры идут по порядку вверх ('+d+')')}
+ else if(b==a-1&&c==b-1){dm=12;why.push('Цифры идут по порядку вниз ('+d+')')}
+ else if(a==c){dm=6;why.push('Цифры-палиндром: '+d+' читается одинаково в обе стороны')}
+ else if(a==b||b==c){dm=2;why.push('Две одинаковые цифры подряд')}
+ const g=GOV.includes(ls);
+ if(g){lm=30;why.push('Серия «'+ls+'»: в народе связывают с госслужбами и чиновниками (неофициально, закрытой серией она не является)')}
+ else if(p[0]==p[4]&&p[4]==p[5]){lm=8;why.push('Три одинаковые буквы ('+ls+')')}
+ else if(WORDS.includes(ls)){lm=4;why.push('Буквы складываются в слово «'+ls+'»')}
+ else if(p[0]==p[5]){lm=2.5;why.push('Буквы-палиндром: '+ls+' читается одинаково в обе стороны')}
+ else if(p[4]==p[5]){lm=1.8;why.push('Две одинаковые буквы подряд ('+p[4]+p[5]+')')}
+ if(dm>1&&lm>=4&&dm>=6)why.push('Комбо: редкие цифры и редкие буквы вместе — цена умножается')
+ if(!why.length)why.push('Обычный набор: особых признаков нет');
+ return{P:dm*lm,why}}
+const rar=P=>TH.filter(t=>P>=t).length;
+// цена номера в среднем регионе по «красоте» P (интерполяция в лог-масштабе)
+const PT=[[1,500],[2.5,2000],[10,15000],[60,250000],[400,5e6],[3000,15e6],[24000,45e6]];
+function pp(P){if(P<=1)return 500;if(P>=24000)return 45e6*Math.pow(P/24000,.5);let k=1;while(P>PT[k][0])k++;const[a,b]=PT[k-1],[c,d]=PT[k];return Math.exp(Math.log(b)+(Math.log(P)-Math.log(a))/(Math.log(c)-Math.log(a))*(Math.log(d)-Math.log(b)))}
+function price(p,ri_,code,P,why,cu){const R=cu||RG[ri_];let m=R.m,w=[...why];
+ const cm=code=='777'?1.6:code.length==3?1.15:1;
+ w.push(`Регион ${R.n} (${code}): наценка ×${+(m*cm).toFixed(2)}`+(code=='777'?' — код «777» особенно ценится':code.length==3?' — трёхзначный код дороже':''));
+ let x=m*cm;const d=p.slice(1,4);
+ if(/^(\d)\1\1$/.test(d)&&code.split('').every(ch=>ch==d[0])){x*=1.4;w.push('Цифры совпадают с кодом региона ('+d+' / '+code+') — ×1.4')}
+ const pr=Math.round(pp(P)*x*(.85+Math.random()*.4)/100)*100||100;return{price:Math.max(100,pr),why:w}}
+// ---------- генерация под редкость ----------
+const D={rnd:()=>''+ri(0,9)+ri(0,9)+ri(0,9),pal:()=>{const a=ri(0,9);let b;do b=ri(0,9);while(b==a);return ''+a+b+a},
+ seq:()=>{const a=ri(1,7);return Math.random()<.6?''+a+(a+1)+(a+2):''+(a+2)+(a+1)+a},round:()=>ri(1,9)+'00',tri:()=>{const n=ri(1,9);return ''+n+n+n},
+ s777:()=>'777',zero:()=>'00'+pick([2,3,4,5,6,8,9]),s001:()=>'001',s000:()=>'000',s007:()=>'007'};
+const LT={rnd:()=>rl()+rl()+rl(),pal:()=>{const a=rl(),b=rl();return a+b+a},dbl:()=>{const a=rl(),b=rl();return a+b+b},same:()=>{const a=rl();return a+a+a},
+ gov:()=>pick(GOV),word:()=>pick(WORDS)};
+const GEN=[[['rnd','rnd']],[['pal','rnd'],['rnd','pal'],['rnd','dbl']],
+ [['seq','rnd'],['round','rnd'],['tri','rnd'],['rnd','gov'],['pal','word'],['seq','pal']],
+ [['s777','rnd'],['zero','rnd'],['tri','same'],['round','same']],
+ [['s777','same'],['zero','same'],['tri','gov'],['s007','dbl'],['s000','rnd']],
+ [['s001','same'],['s000','same'],['s007','same'],['s777','gov'],['s001','gov']]];
+function genPlate(t){let p;for(let i=0;i<60;i++){const[d,l]=pick(GEN[t]),ls=LT[l]();p=ls[0]+D[d]()+ls[1]+ls[2];if(rar(power(p).P)==t)return p}return p}
+function build(p,ri_,code,forceR,forcePrice,cu){const{P,why}=power(p),q=price(p,ri_,code,P,why,cu);
+ return{id:++S.seq,plate:p,reg:ri_,rn:(cu||RG[ri_]).n,code,r:forceR>=0?forceR:rar(P),price:forcePrice||q.price,why:q.why,t:Date.now(),safe:false}}
+function rollRar(){const t=S.w.reduce((a,b)=>a+b,0);let x=Math.random()*t;for(let i=0;i<6;i++){if((x-=S.w[i])<0)return i}return 0}
+const avgM=()=>RG.reduce((a,r)=>a+r.m,0)/RG.length;
+const cost=()=>Math.round(BASE*(S.reg<0?avgM():RG[S.reg].m)/100)*100;
+function plateHTML(p,code,col){return `<div class="plate" style="--rc:${col||'transparent'}"><div class="n">${p[0]} ${p.slice(1,4)} ${p.slice(4)}</div><div class="r"><b>${code}</b><i>RUS</i></div></div>`}
+// ---------- звук ----------
+let ac;function beep(r){if(!S.snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const f=[300,380,480,560,700,880][r];
+ const n=r>=3?3+r-3:1;for(let i=0;i<n;i++){const o=ac.createOscillator(),g=ac.createGain();o.type=r>=4?'triangle':'sine';o.frequency.value=f*(1+i*.25);
+ g.gain.setValueAtTime(S.vol*.25,ac.currentTime+i*.12);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+i*.12+.3);o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*.12);o.stop(ac.currentTime+i*.12+.32)}}catch(e){}}
+function tick(){if(!S.snd)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=200+Math.random()*200;g.gain.value=S.vol*.05;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.03)}catch(e){}}
+function countUp(el,v,ms){const k=el._k=(el._k||0)+1,t0=performance.now();(function f(n){const x=ms>0?Math.min(1,(n-t0)/ms):1,e=x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;el.textContent=fmt(v*e);if(x<1&&el._k==k&&el.isConnected)requestAnimationFrame(f)})(t0)}
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',1800)}
+// ---------- крутка ----------
+let ovOpen=false,lock=false,timers=[];
+function roll(){if(ovOpen)return;let it;
+ if(nOut()>=cap()){toast('Склад заполнен ('+cap()+'). Продай номера или расширь склад');return}
+ if(S.q.length){it=S.q.shift();it.id=++S.seq;it.t=Date.now()}
+ else{const c=cost();if(S.money<c){toast('Не хватает денег — продай номера или возьми подработку');return}
+ S.money-=c;const tw=S.w.reduce((a,b)=>a+b,0)||1;
+ if(Math.random()<S.w[4]*S.pk/tw){const pc=pick(PH);it=build(genPlate(Math.random()<.8?4:5),0,pc,-1,0,{n:'Несуществующий регион',m:3});it.why.push('Код «'+pc+'» не существует в реальности — коллекционный номер-фантом, ценится выше обычных')}
+ else{const rg=S.reg<0?Math.floor(Math.random()*RG.length):S.reg,R=RG[rg],code=(S.reg>=0&&S.cd)||pick(R.c);it=build(genPlate(rollRar()),rg,code,-1)}}
+ S.items.push(it);save();ui();it.r>=3?showOv(it):show(it)}
+const whyHTML=w=>'<ul class="why">'+w.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+function show(it,na){const col=`var(${RC[it.r]})`,res=$('res');res.className='res';void res.offsetWidth;res.className='res pop';
+ res.style.setProperty('--rc',col);res.innerHTML=plateHTML(it.plate,it.code,col)+`<div class="tag" style="color:${col}">${RN[it.r]}</div><div class="price"><span id="pv">0</span> ₽ · ${it.rn||RG[it.reg].n}</div>`+whyHTML(it.why);beep(it.r);countUp($('pv'),it.price,na?0:1100)}
+function showOv(it){const col=`var(${RC[it.r]})`,o=$('ov');
+ const dur=[0,0,0,3.5,6,9][it.r]+Math.min(3,Math.max(0,Math.log10(it.price/1e6))*1.2);
+ timers.forEach(t=>{clearTimeout(t)});timers=[];ovOpen=lock=true;
+ o.style.setProperty('--rc',col);o.className='ov show'+(it.r==5?' div':'');
+ $('ovT').textContent='Крутится…';$('ovC').innerHTML='<span id="ovV">0</span> ₽ · '+(it.rn||RG[it.reg].n);countUp($('ovV'),it.price,dur*950);$('ovW').innerHTML='';$('ovH').textContent='Подожди, пропустить нельзя';
+ const bar=$('bar');bar.style.transition='none';bar.style.width='0';void bar.offsetWidth;bar.style.transition=`width ${dur}s linear`;bar.style.width='100%';
+ const stop=dur*.6*1000,t0=performance.now();
+ (function spin(){const e=performance.now()-t0;if(e>=stop){reveal();return}
+  $('ovP').innerHTML=plateHTML(rl()+D.rnd()+rl()+rl(),it.code,col);tick();timers.push(setTimeout(spin,50+300*Math.pow(e/stop,3)))})();
+ function reveal(){$('ovP').innerHTML=plateHTML(it.plate,it.code,col);beep(it.r);$('ovT').textContent=it.r==5?'БОЖЕСТВЕННЫЙ НОМЕР!':RN[it.r]+'!';
+  
+  $('ovW').innerHTML=it.why.map((x,i)=>`<li style="animation-delay:${i*.7}s">${x}</li>`).join('')}
+ timers.push(setTimeout(()=>{lock=false;$('ovH').textContent='Нажми, чтобы закрыть'},dur*1000))}
+function closeOv(){if(lock)return;$('ov').className='ov';show(S.items[S.items.length-1],1);setTimeout(()=>ovOpen=false,50)}
+$('ov').onclick=e=>{e.stopPropagation();closeOv()};
+document.addEventListener('click',e=>{if(ovOpen||e.target.closest('button,select,input,label,.modal,.sel,header'))return;roll()});
+document.addEventListener('keydown',e=>{if(e.code=='Space'&&!ovOpen&&!document.querySelector('.modal.show')&&!e.target.closest('button,input,select')){e.preventDefault();roll()}});
+// ---------- интерфейс ----------
+function ui(){$('bal').textContent=fmt(S.money)+' ₽';$('qn').textContent=S.q.length?' · очередь: '+S.q.length:'';$('cost').textContent=fmt(cost())+' ₽';
+ if($('mWh').classList.contains('show'))wh()}
+function rname(){if(S.reg<0)return 'Все регионы';const r=RG[S.reg];return r.n+' ('+r.c.slice(0,3).join(', ')+(r.c.length>3?'…':'')+') · ×'+r.m}
+function rlist(q){q=(q||'').trim().toLowerCase();const a=RG.map((r,i)=>[r,i]).filter(([r])=>!q||r.n.toLowerCase().includes(q)||r.c.some(c=>c.startsWith(q)));
+ const all=(!q||'все регионы'.includes(q))?`<div class="ro${S.reg<0?' on':''}" data-i="-1"><b>Все регионы</b> <span>случайный регион при каждой крутке · ×${+avgM().toFixed(2)}</span></div>`:'';
+ $('rl').innerHTML=all+(a.length?a.map(([r,i])=>`<div class="ro${i==S.reg?' on':''}" data-i="${i}"><b>${r.n}</b> <span>${r.c.join(', ')} · ×${r.m}</span></div>`).join(''):all?'':'<div class="ro">Ничего не найдено</div>')}
+function drop(){$('rq').value=rname();codes()}
+function codes(){if(S.reg<0){$('selC').innerHTML='<option value="">Код: случайный</option>';$('selC').disabled=true;return}$('selC').disabled=false;const R=RG[S.reg];$('selC').innerHTML=`<option value="">Любой код региона</option>`+R.c.map(c=>`<option value="${c}"${c==S.cd?' selected':''}>Код ${c}${c=='777'?' · дороже':''}</option>`).join('')}
+$('rq').onfocus=e=>{e.target.select();rlist('');$('rl').style.display='block'};
+$('rq').oninput=e=>{rlist(e.target.value);$('rl').style.display='block'};
+$('rq').onblur=()=>setTimeout(()=>{$('rl').style.display='none';$('rq').value=rname()},250);
+$('rl').onclick=e=>{const o=e.target.closest('[data-i]');if(!o)return;S.reg=+o.dataset.i;S.cd='';save();codes();ui();$('rq').value=rname();$('rl').style.display='none';$('rq').blur()};
+$('selC').onchange=e=>{S.cd=e.target.value;save()};
+$('bonus').onclick=()=>{S.money+=5000;save();ui()};
+function wh(){const tab=$('tab').value,so=$('sort').value,fr=+$('fr').value;
+ let a=S.items.filter(i=>(tab=='all'||(tab=='safe')==i.safe)&&(fr<0||i.r==fr));
+ const f={new:(x,y)=>y.id-x.id,old:(x,y)=>x.id-y.id,pd:(x,y)=>y.price-x.price,pa:(x,y)=>x.price-y.price,rd:(x,y)=>y.r-x.r||y.price-x.price}[so];a.sort(f);
+ const tot=a.reduce((s,i)=>s+i.price,0);$('whInfo').textContent=`Показано: ${a.length} · стоимость ${fmt(tot)} ₽`;
+ $('capInfo').textContent=`Склад ${nOut()}/${cap()} · Сейф ${nSafe()}/${SAFE}`;$('upg').textContent=`Расширить +${UPS} · ${fmt(upCost())} ₽`;
+ $('items').innerHTML=a.length?a.map(i=>`<div class="it${i.safe?' safe':''}" style="--rc:var(${RC[i.r]})">${plateHTML(i.plate,i.code)}<div><b style="color:var(${RC[i.r]})">${RN[i.r]}</b> <span class="mut">${i.rn||RG[i.reg].n}</span><br><span class="price">${fmt(i.price)} ₽</span></div>
+ <div class="row"><button class="btn" data-s="${i.id}">${i.safe?'Достать из сейфа':'В сейф'}</button>${i.safe?'':`<button class="btn pri" data-sell="${i.id}">Продать</button>`}</div>${whyHTML(i.why)}</div>`).join(''):'<div style="color:var(--mut)">Здесь пока пусто. Нажми на экран, чтобы получить номер.</div>'}
+$('items').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.s){const i=S.items.find(x=>x.id==b.dataset.s);
+  if(!i.safe&&nSafe()>=SAFE){toast('Сейф полон: максимум '+SAFE+' номеров');return}
+  if(i.safe&&nOut()>=cap()){toast('Склад заполнен — сначала освободи место');return}
+  i.safe=!i.safe}
+ if(b.dataset.sell){const k=S.items.findIndex(x=>x.id==b.dataset.sell);S.money+=S.items[k].price;S.items.splice(k,1)}
+ save();ui();wh()};
+$('sellAll').onclick=()=>{const a=S.items.filter(i=>!i.safe&&(+$('fr').value<0||i.r==+$('fr').value));if(!a.length){toast('Нечего продавать: всё в сейфе или скрыто фильтром');return}
+ const sum=a.reduce((s,i)=>s+i.price,0),b=$('sellAll');
+ if(!b._arm){b._arm=1;b.textContent=`Точно? Продать ${a.length} шт. за ${fmt(sum)} ₽`;clearTimeout(b._h);b._h=setTimeout(()=>{b._arm=0;b.textContent='Продать всё не в сейфе'},4000);return}
+ b._arm=0;b.textContent='Продать всё не в сейфе';clearTimeout(b._h);
+ const ids=new Set(a.map(i=>i.id));S.money+=a.reduce((s,i)=>s+i.price,0);S.items=S.items.filter(i=>!ids.has(i.id));save();ui();toast('Продано: '+a.length+' шт. за '+fmt(sum)+' ₽')};
+['tab','sort','fr'].forEach(i=>$(i).onchange=wh);
+$('upg').onclick=()=>{const c=upCost();if(S.money<c){toast('Не хватает денег: нужно '+fmt(c)+' ₽');return}S.money-=c;S.up++;save();ui();wh();toast('Склад расширен до '+cap())};
+$('fr').innerHTML+=RN.map((n,i)=>`<option value="${i}">${n}</option>`).join('');
+const open=id=>{$(id).classList.add('show');if(id=='mWh')wh()};
+$('bWh').onclick=()=>open('mWh');$('bSet').onclick=()=>{$('snd').checked=S.snd;$('vol').value=S.vol;open('mSet')};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('.modal').classList.remove('show'));
+document.querySelectorAll('.modal').forEach(m=>m.onclick=e=>{if(e.target==m)m.classList.remove('show')});
+$('snd').onchange=e=>{S.snd=e.target.checked;save()};$('vol').oninput=e=>{S.vol=+e.target.value;save()};
+$('reset').onclick=()=>{const b=$('reset');if(!b._arm){b._arm=1;b.textContent='Точно удалить? Нажми ещё раз';setTimeout(()=>{b._arm=0;b.textContent='Сбросить прогресс'},4000);return}b._arm=0;b.textContent='Сбросить прогресс';S=null;try{localStorage.removeItem(KEY)}catch(e){}load();save();drop();ui()};
+$('codeOk').onclick=()=>{if($('code').value.trim().toUpperCase()==CODE){$('code').value='';$('mSet').classList.remove('show');adm();open('mAd')}else toast('Неверный код')};
+// ---------- меню автора ----------
+function pct(){const t=S.w.reduce((a,b)=>a+b,0)||1;return S.w.map(w=>+(w/t*100).toFixed(4)+'%')}
+function adm(){phInit();$('rgl').innerHTML=RG.map(r=>`<option value="${r.n}">${r.c.join(', ')}</option>`).join('');
+ const p=pct();$('adCh').innerHTML=RN.map((n,i)=>`<label class="row" style="justify-content:space-between"><span style="color:var(${RC[i]})">${n} <small id="pc${i}" style="color:var(--mut)">${p[i]}</small></span><input type="number" min="0" step="any" data-w="${i}" value="${S.w[i]}" style="width:120px"></label>`).join('')}
+$('adCh').oninput=e=>{const i=e.target.dataset.w;if(i!=null){S.w[i]=Math.max(0,+e.target.value||0);if(!S.w.some(x=>x>0))S.w[0]=1;save();pct().forEach((x,k)=>$('pc'+k).textContent=x);phPct()}};
+$('adRs').onclick=()=>{S.w=DEFW.slice();S.pk=.5;save();adm()};
+function phPct(){const t=S.w.reduce((a,b)=>a+b,0)||1,p=S.w[4]*S.pk/t;$('phPc').textContent=p>0?'= '+(p*100).toFixed(5)+'% (1 из '+fmt(1/p)+')':'= 0%'}
+function phInit(){$('phl').innerHTML=PH.map(c=>`<option value="${c}">`).join('');$('phK').value=S.pk;phPct()}
+$('phK').oninput=e=>{S.pk=Math.max(0,+e.target.value||0);save();phPct()};
+$('phG').onclick=()=>{let p=$('phP').value.toUpperCase().replace(/[^A-ZА-Я0-9]/g,'');
+ if(p&&!/^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}$/.test(p)){toast('Формат: А777АА (буквы АВЕКМНОРСТУХ)');return}
+ if(!p)p=genPlate(Math.random()<.8?4:5);
+ const pc=($('phC').value.trim().toUpperCase())||pick(PH);
+ const it=build(p,0,pc,-1,0,{n:'Несуществующий регион',m:3});it.why.push('Код «'+pc+'» не существует в реальности — коллекционный номер-фантом, ценится выше обычных');
+ S.q.push(it);save();ui();toast('Фантом в очереди: '+RN[it.r]+' · '+fmt(it.price)+' ₽')};
+$('adMb').onclick=()=>{S.money+=+$('adM').value||0;save();ui()};
+$('adG').onclick=()=>{const p=$('adP').value.toUpperCase().replace(/[^A-ZА-Я0-9]/g,'');if(!/^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}$/.test(p)){toast('Формат: А777АА (буквы АВЕКМНОРСТУХ)');return}
+ const raw=$('adR').value.trim(),t=raw.toLowerCase(),cd=$('adC').value.trim().toUpperCase();let i=RG.findIndex(r=>r.n.toLowerCase()==t||(t&&r.c.includes(t))),cu=null,code=cd;
+ if(i<0){cu={n:raw||'Свой регион',m:+$('adM2').value||1};code=cd||(t&&t.length<=4?t.toUpperCase():'00');i=0}
+ else code=cd||(RG[i].c.includes(t)?t:RG[i].c[0]);
+ const it=build(p,i,code,-1,+$('adPr').value||0,cu);S.q.push(it);save();ui();toast('В очереди: '+RN[it.r]+' · '+fmt(it.price)+' ₽ — выпадет при следующем нажатии')};
+load();drop();ui();
+</script></body></html>
